@@ -15,7 +15,6 @@ MonoBehaviour:
   oscillators:
   - noteOffset: 0
     detune: 0
-    mix: 1
     attack: 5
     release: 0.20000000298023224
     wave:
@@ -33,14 +32,14 @@ MonoBehaviour:
       - serializedVersion: 3
         time: 0.10032767
         value: 0.22762194
-        inSlope: 0.6925454
-        outSlope: 0.6925454
+        inSlope: 0.70101494
+        outSlope: 0.70101494
         tangentMode: 34
         weightedMode: 0
         inWeight: 0.33333334
         outWeight: 0.33333334
       - serializedVersion: 3
-        time: 0.19089757
+        time: 0.19266759
         value: 0.14758582
         inSlope: -29.89455
         outSlope: 15.001179
@@ -51,8 +50,8 @@ MonoBehaviour:
       - serializedVersion: 3
         time: 0.25709233
         value: 0.07012649
-        inSlope: -1.2817148
-        outSlope: -1.2817148
+        inSlope: -1.3015716
+        outSlope: -1.3015716
         tangentMode: 136
         weightedMode: 0
         inWeight: 0.33333334
@@ -76,14 +75,14 @@ MonoBehaviour:
         inWeight: 0.33333334
         outWeight: 0.33333334
       - serializedVersion: 3
-        time: 0.3443378
-        value: -0.000464704
+        time: 0.3461078
+        value: 0
         inSlope: -11.083296
-        outSlope: 0.017119352
+        outSlope: -0.009481162
         tangentMode: 1
         weightedMode: 0
         inWeight: 0.33333334
-        outWeight: 0.33333334
+        outWeight: 1
       - serializedVersion: 3
         time: 1
         value: 0

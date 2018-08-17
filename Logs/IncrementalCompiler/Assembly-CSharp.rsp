@@ -286,7 +286,7 @@
 -d:UNITY_TEAM_LICENSE
 -d:ENABLE_VSTU
 -i:C:/Users/pop/Documents/GitHub/synthy/Assets/Code/Synthesizer/ClampedCurveAttribute.cs
--i:C:/Users/pop/Documents/GitHub/synthy/Assets/Code/Synthesizer/NoteFrequencies.cs
+-i:C:/Users/pop/Documents/GitHub/synthy/Assets/Code/Synthesizer/Helper.cs
 -i:C:/Users/pop/Documents/GitHub/synthy/Assets/Code/Synthesizer/Preset.cs
 -i:C:/Users/pop/Documents/GitHub/synthy/Assets/Code/Synthesizer/Synthesizer.cs
 -i:C:/Users/pop/Documents/GitHub/synthy/Assets/Code/Synthesizer/VoiceKey.cs

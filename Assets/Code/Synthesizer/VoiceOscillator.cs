@@ -87,7 +87,7 @@ public class VoiceOscillator : MonoBehaviour
     {
         if (oscillator == null) return;
 
-        double frequency = NoteFrequencies.GetFrequencyFromNote(key.note + key.synthesizer.preset.transpose + oscillator.noteOffset, key.synthesizer.tuning + oscillator.detune);
+        double frequency = Helper.GetFrequencyFromNote(key.note + key.synthesizer.preset.transpose + oscillator.noteOffset, key.synthesizer.tuning + oscillator.detune);
         double increment = frequency * 1.0 / Synthesizer.SampleFrequency;
 
         Attack();

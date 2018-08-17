@@ -1,6 +1,7 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
-public class NoteFrequencies
+public class Helper
 {
     public static double GetFrequencyFromNote(int note, double tuning)
     {
@@ -92,5 +93,24 @@ public class NoteFrequencies
         if (keyCode == KeyCode.RightBracket) return 91;
 
         return -1;
+    }
+
+    public static string GetLetterFromNote(int note)
+    {
+        int normalized = note - (Mathf.FloorToInt(note / 12f) * 12);
+        if (normalized == 0) return "C";
+        if (normalized == 1) return "C#";
+        if (normalized == 2) return "D";
+        if (normalized == 3) return "D#";
+        if (normalized == 4) return "E";
+        if (normalized == 5) return "F";
+        if (normalized == 6) return "F#";
+        if (normalized == 7) return "G";
+        if (normalized == 8) return "G#";
+        if (normalized == 9) return "A";
+        if (normalized == 10) return "A#";
+        if (normalized == 11) return "B";
+
+        throw new Exception("Could not return note letter from " + note);
     }
 }

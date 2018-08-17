@@ -57,6 +57,15 @@ public class Synthesizer : MonoBehaviour
         }
     }
 
+    private void OnApplicationFocus(bool focus)
+    {
+        //focus lost, release all keys
+        if (!focus)
+        {
+            notes.Clear();
+        }
+    }
+
     public static async Task Play(int key, float duration)
     {
         if (!instance) instance = FindObjectOfType<Synthesizer>();
@@ -88,9 +97,9 @@ public class Synthesizer : MonoBehaviour
             CreateVoices();
         }
 
-        foreach (var key in NoteFrequencies.Keys)
+        foreach (var key in Helper.Keys)
         {
-            int note = NoteFrequencies.GetNoteFromKeyCode(key);
+            int note = Helper.GetNoteFromKeyCode(key);
             if (Input.GetKeyDown(key))
             {
                 if (!notes.Contains(note))

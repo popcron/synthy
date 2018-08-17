@@ -5,7 +5,6 @@
 -out:C:/Users/pop/Documents/GitHub/synthy/Temp/Assembly-CSharp-Editor.dll
 -nostdlib
 -unsafe
--r:C:/Users/pop/Documents/GitHub/synthy/Library/ScriptAssemblies/Assembly-CSharp.dll
 -r:"C:\Program Files\Unity\Hub\Editor\2018.2.3f1\Editor\Data\Managed/UnityEngine/UnityEngine.dll"
 -r:"C:\Program Files\Unity\Hub\Editor\2018.2.3f1\Editor\Data\Managed/UnityEngine/UnityEngine.AIModule.dll"
 -r:"C:\Program Files\Unity\Hub\Editor\2018.2.3f1\Editor\Data\Managed/UnityEngine/UnityEngine.ARModule.dll"
@@ -69,6 +68,7 @@
 -r:"C:\Program Files\Unity\Hub\Editor\2018.2.3f1\Editor\Data\Managed/UnityEngine/UnityEngine.XRModule.dll"
 -r:"C:\Program Files\Unity\Hub\Editor\2018.2.3f1\Editor\Data\Managed/UnityEditor.dll"
 -r:"C:\Program Files\Unity\Hub\Editor\2018.2.3f1\Editor\Data\Managed/Unity.Locator.dll"
+-r:C:/Users/pop/Documents/GitHub/synthy/Library/ScriptAssemblies/Assembly-CSharp.dll
 -r:C:/Users/pop/Documents/GitHub/synthy/Library/ScriptAssemblies/Unity.PackageManagerUI.Editor.dll
 -r:"C:/Program Files/Unity/Hub/Editor/2018.2.3f1/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll"
 -r:"C:/Program Files/Unity/Hub/Editor/2018.2.3f1/Editor/Data/UnityExtensions/Unity/GUISystem/Editor/UnityEditor.UI.dll"
@@ -304,4 +304,12 @@
 -d:UNITY_TEAM_LICENSE
 -d:ENABLE_VSTU
 -i:C:/Users/pop/Documents/GitHub/synthy/Assets/Code/Synthesizer/Editor/EditorCurveDrawer.cs
+-i:C:/Users/pop/Documents/GitHub/synthy/Assets/Code/Synthesizer/Editor/EditorSynthesizer.cs
+-i:C:/Users/pop/Documents/GitHub/synthy/Assets/Code/Synthesizer/Editor/Sequencer/EditorSequencer.cs
+-i:C:/Users/pop/Documents/GitHub/synthy/Assets/Code/Synthesizer/Editor/Sequencer/EditorSequencerBrowser.cs
+-i:C:/Users/pop/Documents/GitHub/synthy/Assets/Code/Synthesizer/Editor/Sequencer/EditorSequencerMixer.cs
+-i:C:/Users/pop/Documents/GitHub/synthy/Assets/Code/Synthesizer/Editor/Sequencer/EditorSequencerPianoRoll.cs
+-i:C:/Users/pop/Documents/GitHub/synthy/Assets/Code/Synthesizer/Editor/Sequencer/EditorSequencerPlaylist.cs
+-i:C:/Users/pop/Documents/GitHub/synthy/Assets/Code/Synthesizer/Editor/Sequencer/EditorSequencerRack.cs
+-i:C:/Users/pop/Documents/GitHub/synthy/Assets/Code/Synthesizer/Editor/Sequencer/EditorSequencerToolbar.cs
 -v:0
