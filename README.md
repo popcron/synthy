@@ -1,5 +1,6 @@
 # Synthy
 An experimental synthesizer in unity, definetly not optimized, but it works.
+Contributions and imporovements are welcome!
 
 ### Requirements
 Unity 2018.2.3f1
