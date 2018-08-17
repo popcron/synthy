@@ -1,0 +1,61 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f7af5579492fad543863ced50e51672c, type: 3}
+  m_Name: Square
+  m_EditorClassIdentifier: 
+  transpose: -24
+  oscillators:
+  - detune: 0
+    mix: 1
+    attack: 6
+    release: 6.619999885559082
+    wave:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0.037970427
+        outSlope: 0.037970427
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.9880527
+      - serializedVersion: 3
+        time: 0.49977627
+        value: 0.0042547286
+        inSlope: -0.0039923284
+        outSlope: 354.60068
+        tangentMode: 1
+        weightedMode: 0
+        inWeight: 1
+        outWeight: 0.6355585
+      - serializedVersion: 3
+        time: 0.5043055
+        value: 1.0044161
+        inSlope: 189.90059
+        outSlope: 0.016366506
+        tangentMode: 1
+        weightedMode: 0
+        inWeight: 1
+        outWeight: 0.99642944
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0.0000002414095
+        outSlope: 0.0000002414095
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.9961887
+        outWeight: 0.33333334
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 0
