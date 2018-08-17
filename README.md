@@ -12,4 +12,4 @@ Incremental compiler 0.0.42
 2. Add Synthesizer to it
 
 Or drag and drop the Synthesizer prefab.
-Then, call `Synthezier.Play(note, duration)` in the same scene, or use the keyboard.
+Then, call `Syntheziser.Play(note, duration)` in the same scene, or use the keyboard.
