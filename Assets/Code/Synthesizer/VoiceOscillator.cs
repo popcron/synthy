@@ -96,7 +96,7 @@ public class VoiceOscillator : MonoBehaviour
 
         for (int i = 0; i < data.Length; i += channels)
         {
-            data[i] = (float)(gain * key.synthesizer.volume * oscillator.mix * oscillator.wave.Evaluate((float)phase));
+            data[i] = (float)(gain * key.synthesizer.volume * key.synthesizer.preset.Mix * oscillator.wave.Evaluate((float)phase));
 
             if (channels == 2)
             {

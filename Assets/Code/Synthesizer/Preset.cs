@@ -12,18 +12,24 @@ public class Preset : ScriptableObject
         public sbyte noteOffset = 0;
         public double detune = 0.0;
 
-        [Range(0f, 1f)]
-        public double mix = 1f;
-
         [Range(0.05f, 10f)]
         public double attack = 100f;
 
         [Range(0.05f, 10f)]
         public double release = 100f;
 
+        [ClampedCurve]
         public AnimationCurve wave = new AnimationCurve();
     }
 
     public sbyte transpose = 0;
     public List<Oscillator> oscillators = new List<Oscillator>();
+
+    public double Mix
+    {
+        get
+        {
+            return 1.0 / oscillators.Count;
+        }
+    }
 }

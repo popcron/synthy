@@ -13,7 +13,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   transpose: -24
   oscillators:
-  - detune: 0
+  - noteOffset: 0
+    detune: 0
     mix: 1
     attack: 6
     release: 0.20000000298023224
@@ -30,31 +31,31 @@ MonoBehaviour:
         inWeight: 0.33333334
         outWeight: 0.9880527
       - serializedVersion: 3
-        time: 0.1581833
-        value: 0.0042547286
+        time: 0.16172335
+        value: 0
         inSlope: -0.0039923284
-        outSlope: 354.60068
+        outSlope: 43.86516
         tangentMode: 1
         weightedMode: 0
         inWeight: 1
-        outWeight: 0.6355585
+        outWeight: 1
       - serializedVersion: 3
-        time: 0.16271251
-        value: 1.0044161
+        time: 0.17333263
+        value: 1
         inSlope: 189.90059
-        outSlope: 0.016366506
+        outSlope: -0.00000014389659
         tangentMode: 1
         weightedMode: 0
         inWeight: 1
-        outWeight: 0.99642944
+        outWeight: 1
       - serializedVersion: 3
         time: 1
         value: 1
-        inSlope: 0.0000002414095
-        outSlope: 0.0000002414095
+        inSlope: -0.0075614476
+        outSlope: -0.0075614476
         tangentMode: 0
         weightedMode: 0
-        inWeight: 0.9961887
+        inWeight: 0.9998565
         outWeight: 0.33333334
       m_PreInfinity: 2
       m_PostInfinity: 2
