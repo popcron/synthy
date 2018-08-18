@@ -42,9 +42,13 @@ namespace Synthy
         private List<Note> notesPlaying = new List<Note>();
         private Track data;
 
+        private double lastFrame;
+
         private void Awake()
         {
-            if(track == null)
+            lastFrame = AudioSettings.dspTime;
+
+            if (track == null)
             {
                 throw new Exception("Nothing to play from Awake.");
             }
@@ -52,8 +56,14 @@ namespace Synthy
             Play(track.track);
         }
 
+        private void OnEnable()
+        {
+            lastFrame = AudioSettings.dspTime;
+        }
+
         public void Play(Track data)
         {
+            lastFrame = AudioSettings.dspTime;
             this.data = data ?? throw new Exception("Track data is null.");
 
             play = false;
@@ -85,9 +95,12 @@ namespace Synthy
 
         private void OnAudioFilterRead(float[] d, int c)
         {
+            double deltaTime = AudioSettings.dspTime - lastFrame;
+            lastFrame = AudioSettings.dspTime;
+
             if (play)
             {
-                time += data.bpm * speed * 60.0 / Synthesizer.SampleFrequency;
+                time += data.bpm * deltaTime * speed / 10.0;
             }
             else
             {
