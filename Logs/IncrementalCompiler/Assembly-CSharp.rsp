@@ -287,8 +287,15 @@
 -d:ENABLE_VSTU
 -i:C:/Users/pop/Documents/GitHub/synthy/Assets/Code/Synthesizer/ClampedCurveAttribute.cs
 -i:C:/Users/pop/Documents/GitHub/synthy/Assets/Code/Synthesizer/Helper.cs
+-i:C:/Users/pop/Documents/GitHub/synthy/Assets/Code/Synthesizer/InstancedPattern.cs
+-i:C:/Users/pop/Documents/GitHub/synthy/Assets/Code/Synthesizer/Note.cs
+-i:C:/Users/pop/Documents/GitHub/synthy/Assets/Code/Synthesizer/Pattern.cs
+-i:C:/Users/pop/Documents/GitHub/synthy/Assets/Code/Synthesizer/Player.cs
 -i:C:/Users/pop/Documents/GitHub/synthy/Assets/Code/Synthesizer/Preset.cs
+-i:C:/Users/pop/Documents/GitHub/synthy/Assets/Code/Synthesizer/Rack.cs
 -i:C:/Users/pop/Documents/GitHub/synthy/Assets/Code/Synthesizer/Synthesizer.cs
+-i:C:/Users/pop/Documents/GitHub/synthy/Assets/Code/Synthesizer/Track.cs
+-i:C:/Users/pop/Documents/GitHub/synthy/Assets/Code/Synthesizer/TrackAsset.cs
+-i:C:/Users/pop/Documents/GitHub/synthy/Assets/Code/Synthesizer/VoiceGenerator.cs
 -i:C:/Users/pop/Documents/GitHub/synthy/Assets/Code/Synthesizer/VoiceKey.cs
--i:C:/Users/pop/Documents/GitHub/synthy/Assets/Code/Synthesizer/VoiceOscillator.cs
 -v:0

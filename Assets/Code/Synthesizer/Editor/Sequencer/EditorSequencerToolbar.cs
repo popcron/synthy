@@ -3,17 +3,20 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
-public class EditorSequencerToolbar : EditorWindow
+namespace Synthy
 {
-    [MenuItem("Synthesizer/Sequencer/Toolbar")]
-    public static void Initialize()
+    public class EditorSequencerToolbar : EditorWindow
     {
-        //Show existing window instance. If one doesn't exist, make one.
-        GetWindow<EditorSequencerToolbar>("Toolbar");
-    }
+        [MenuItem("Synthesizer/Sequencer/Toolbar")]
+        public static void Initialize()
+        {
+            //Show existing window instance. If one doesn't exist, make one.
+            GetWindow<EditorSequencerToolbar>("Toolbar");
+        }
 
-    private void OnGUI()
-    {
-        GUILayout.Label("Toolbar");
+        private void OnGUI()
+        {
+            GUILayout.Label("Toolbar");
+        }
     }
 }

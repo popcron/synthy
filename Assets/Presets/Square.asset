@@ -11,52 +11,52 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f7af5579492fad543863ced50e51672c, type: 3}
   m_Name: Square
   m_EditorClassIdentifier: 
-  transpose: -24
-  oscillators:
+  name: Square
+  transpose: -12
+  generators:
   - noteOffset: 0
     detune: 0
-    mix: 1
-    attack: 6
-    release: 6.619999885559082
+    attack: 10
+    release: 10
     wave:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
         time: 0
         value: 0
-        inSlope: 0.037970427
-        outSlope: 0.037970427
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 0.2530888
+        value: 1
+        inSlope: Infinity
+        outSlope: Infinity
         tangentMode: 0
         weightedMode: 0
         inWeight: 0.33333334
-        outWeight: 0.9880527
+        outWeight: 0.33333334
       - serializedVersion: 3
-        time: 0.49977627
-        value: 0.0042547286
-        inSlope: -0.0039923284
-        outSlope: 354.60068
-        tangentMode: 1
-        weightedMode: 0
-        inWeight: 1
-        outWeight: 0.6355585
-      - serializedVersion: 3
-        time: 0.5043055
-        value: 1.0044161
-        inSlope: 189.90059
-        outSlope: 0.003699449
-        tangentMode: 1
-        weightedMode: 0
-        inWeight: 1
-        outWeight: 1
-      - serializedVersion: 3
-        time: 1
-        value: 1
-        inSlope: -0.012521972
-        outSlope: -0.012521972
+        time: 0.75046116
+        value: 0
+        inSlope: Infinity
+        outSlope: Infinity
         tangentMode: 0
         weightedMode: 0
-        inWeight: 1
+        inWeight: 0.33333334
         outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 1
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 0

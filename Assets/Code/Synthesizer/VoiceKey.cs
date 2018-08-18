@@ -2,37 +2,40 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(AudioSource))]
-public class VoiceKey : MonoBehaviour
+namespace Synthy
 {
-    public int note = 0;
-    public Synthesizer synthesizer;
-
-    private List<VoiceOscillator> voices = new List<VoiceOscillator>();
-
-    public bool Available
+    [RequireComponent(typeof(AudioSource))]
+    public class VoiceKey : MonoBehaviour
     {
-        get
+        public int note = 0;
+        public Synthesizer synthesizer;
+
+        private List<VoiceGenerators> voices = new List<VoiceGenerators>();
+
+        public bool Available
         {
-            foreach (var voice in voices)
+            get
             {
-                if (!voice.Available) return false;
+                foreach (var voice in voices)
+                {
+                    if (!voice.Available) return false;
+                }
+
+                return true;
             }
-
-            return true;
         }
-    }
 
-    public void Initialize(Synthesizer synthesizer)
-    {
-        this.synthesizer = synthesizer;
-
-        foreach (var oscillator in synthesizer.preset.oscillators)
+        public void Initialize(Synthesizer synthesizer)
         {
-            VoiceOscillator voice = new GameObject("Voice").AddComponent<VoiceOscillator>();
-            voice.Initialize(this, oscillator);
-            voice.transform.SetParent(transform);
-            voices.Add(voice);
+            this.synthesizer = synthesizer;
+
+            foreach (var generator in synthesizer.preset.Generators)
+            {
+                VoiceGenerators voice = new GameObject("Voice").AddComponent<VoiceGenerators>();
+                voice.Initialize(this, generator);
+                voice.transform.SetParent(transform);
+                voices.Add(voice);
+            }
         }
     }
 }

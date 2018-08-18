@@ -1,147 +1,179 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 
-[RequireComponent(typeof(AudioSource))]
-public class Synthesizer : MonoBehaviour
+namespace Synthy
 {
-    public const int SampleFrequency = 44000;
-    public const int MiddleC = 72;
-
-    private static Synthesizer instance;
-
-    public Preset preset;
-    public int polyphony = 16;
-    public float tuning = 440;
-
-    [Range(0f, 1f)]
-    public float volume = 0.1f;
-
-    private List<int> notes = new List<int>();
-    private List<VoiceKey> voices = new List<VoiceKey>();
-    private List<int> requests = new List<int>();
-
-    private Preset lastPreset;
-    private int lastOscillators;
-
-    private void Awake()
+    [RequireComponent(typeof(AudioSource))]
+    public class Synthesizer : MonoBehaviour
     {
-        instance = this;
-        CreateVoices();
-    }
+        public const int SampleFrequency = 44100;
+        public const int MiddleC = 72;
 
-    private void OnEnable()
-    {
-        instance = this;
-        CreateVoices();
-    }
+        public Preset preset;
+        public int polyphony = 16;
+        public float tuning = 440;
 
-    private void CreateVoices()
-    {
-        //delete the old voices
-        foreach (Transform children in transform)
+        [Range(0f, 1f)]
+        public float volume = 0.1f;
+
+        private List<int> notes = new List<int>();
+        private List<VoiceKey> voices = new List<VoiceKey>();
+        private List<Note> requests = new List<Note>();
+
+        private Preset lastPreset;
+        private int lastGenerators;
+        
+        public void Initialize(Preset preset)
         {
-            Destroy(children.gameObject);
-        }
-
-        //create new voices
-        voices.Clear();
-        for (int i = 0; i < polyphony; i++)
-        {
-            VoiceKey voice = new GameObject("VoiceKey").AddComponent<VoiceKey>();
-            voice.Initialize(this);
-            voice.transform.SetParent(transform);
-            voices.Add(voice);
-        }
-    }
-
-    private void OnApplicationFocus(bool focus)
-    {
-        //focus lost, release all keys
-        if (!focus)
-        {
-            notes.Clear();
-        }
-    }
-
-    public static async Task Play(int key, float duration)
-    {
-        if (!instance) instance = FindObjectOfType<Synthesizer>();
-        if (!instance) return;
-
-        instance.requests.Add(key);
-
-        await Task.Delay(Mathf.RoundToInt(duration * 1000));
-
-        instance.requests.Remove(key);
-    }
-
-    private void Update()
-    {
-        if(Input.GetKeyDown(KeyCode.Space))
-        {
-            Play(MiddleC, 0.5f);
-        }
-
-        if(lastOscillators != preset.oscillators.Count)
-        {
-            lastOscillators = preset.oscillators.Count;
+            this.preset = preset;
             CreateVoices();
-        }
 
-        if(lastPreset != preset)
-        {
+            lastGenerators = preset.Generators.Count;
             lastPreset = preset;
+        }
+
+        private void Awake()
+        {
             CreateVoices();
         }
 
-        foreach (var key in Helper.Keys)
+        private void OnEnable()
         {
-            int note = Helper.GetNoteFromKeyCode(key);
-            if (Input.GetKeyDown(key))
+            CreateVoices();
+        }
+
+        private void CreateVoices()
+        {
+            //delete the old voices
+            foreach (Transform children in transform)
             {
-                if (!notes.Contains(note))
-                {
-                    notes.Add(note);
-                }
+                Destroy(children.gameObject);
             }
-            if (Input.GetKeyUp(key))
+
+            //create new voices
+            voices.Clear();
+            for (int i = 0; i < polyphony; i++)
             {
-                while (notes.Contains(note))
-                {
-                    notes.Remove(note);
-                }
+                VoiceKey voice = new GameObject("VoiceKey").AddComponent<VoiceKey>();
+                voice.Initialize(this);
+                voice.transform.SetParent(transform);
+                voices.Add(voice);
             }
         }
 
-        //disable all voices
-        foreach (var voice in voices)
+        private void OnApplicationFocus(bool focus)
         {
-            voice.enabled = false;  notes.Contains(voice.note);
+            //focus lost, release all keys
+            if (!focus)
+            {
+                notes.Clear();
+            }
         }
 
-        //for every note, find the first available voice
-        List<int> n = new List<int>(notes);
-        n.AddRange(requests);
-
-        foreach (var note in n)
+        public bool IsPlaying(Note note)
         {
-            bool found = false;
+            return requests.Contains(note);
+        }
+
+        public void Add(Note note)
+        {
+            requests.Add(note);
+        }
+
+        public void Remove(Note note)
+        {
+            requests.Remove(note);
+        }
+
+        public async void Play(int key, float duration, CancellationToken? token = null)
+        {
+            Note note = new Note((byte)key, 0, (int)duration);
+            requests.Add(note);
+
+            if (token != null)
+            {
+                await Task.Delay(Mathf.RoundToInt(duration * 1000), token.Value);
+            }
+            else
+            {
+                await Task.Delay(Mathf.RoundToInt(duration * 1000));
+            }
+
+            requests.Remove(note);
+        }
+
+        private void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                Play(MiddleC, 0.5f);
+            }
+
+            if (lastGenerators != preset.Generators.Count)
+            {
+                lastGenerators = preset.Generators.Count;
+                CreateVoices();
+            }
+
+            if (lastPreset != preset)
+            {
+                lastPreset = preset;
+                CreateVoices();
+            }
+
+            foreach (var key in Helper.Keys)
+            {
+                int note = Helper.GetNoteFromKeyCode(key);
+                if (Input.GetKeyDown(key))
+                {
+                    if (!notes.Contains(note))
+                    {
+                        notes.Add(note);
+                    }
+                }
+                if (Input.GetKeyUp(key))
+                {
+                    while (notes.Contains(note))
+                    {
+                        notes.Remove(note);
+                    }
+                }
+            }
+
+            //disable all voices
             foreach (var voice in voices)
             {
-                if (voice.Available || (!voice.Available && voice.note == note))
-                {
-                    voice.enabled = true;
-                    voice.note = note;
-
-                    found = true;
-                    break;
-                }
+                voice.enabled = false; notes.Contains(voice.note);
             }
 
-            if (found) continue;
+            //for every note, find the first available voice
+            List<int> n = new List<int>(notes);
+            for (int i = 0; i < requests.Count; i++)
+            {
+                n.Add(requests[i].note);
+            }
+
+            foreach (var note in n)
+            {
+                bool found = false;
+                foreach (var voice in voices)
+                {
+                    if (voice.Available || (!voice.Available && voice.note == note))
+                    {
+                        voice.enabled = true;
+                        voice.note = note;
+
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (found) continue;
+            }
         }
     }
 }

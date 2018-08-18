@@ -22,7 +22,7 @@ GameObject:
   - component: {fileID: 82810849340150118}
   - component: {fileID: 114445896968952428}
   m_Layer: 0
-  m_Name: Oscillator
+  m_Name: Synthesizer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -148,6 +148,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   preset: {fileID: 11400000, guid: f2c9cc6ef40ef29498659ad6584d0a48, type: 2}
-  polyphony: 16
+  polyphony: 6
   tuning: 440
   volume: 0.1
