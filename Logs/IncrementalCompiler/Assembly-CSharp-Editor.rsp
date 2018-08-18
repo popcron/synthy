@@ -305,6 +305,7 @@
 -d:ENABLE_VSTU
 -i:C:/Users/pop/Documents/GitHub/synthy/Assets/Code/Synthesizer/Editor/EditorCurveDrawer.cs
 -i:C:/Users/pop/Documents/GitHub/synthy/Assets/Code/Synthesizer/Editor/EditorSynthesizer.cs
+-i:C:/Users/pop/Documents/GitHub/synthy/Assets/Code/Synthesizer/Editor/Sequencer/EditorAssetProcessor.cs
 -i:C:/Users/pop/Documents/GitHub/synthy/Assets/Code/Synthesizer/Editor/Sequencer/EditorSequencer.cs
 -i:C:/Users/pop/Documents/GitHub/synthy/Assets/Code/Synthesizer/Editor/Sequencer/EditorSequencerBrowser.cs
 -i:C:/Users/pop/Documents/GitHub/synthy/Assets/Code/Synthesizer/Editor/Sequencer/EditorSequencerMixer.cs

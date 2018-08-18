@@ -9,12 +9,12 @@ namespace Synthy
         public string name;
         public int time;
         public byte order;
-        public ushort pattern;
+        public int pattern;
 
         public InstancedPattern(string name, int pattern)
         {
             this.name = name;
-            this.pattern = (ushort)pattern;
+            this.pattern = pattern;
         }
 
         public InstancedPattern(InstancedPattern original)
@@ -23,6 +23,12 @@ namespace Synthy
             time = original.time;
             order = original.order;
             pattern = original.pattern;
+        }
+
+        public InstancedPattern(Pattern pattern, Track track)
+        {
+            name = pattern.name;
+            this.pattern = track.uniquePatterns.IndexOf(pattern);
         }
 
         public int GetEnd(Track track)

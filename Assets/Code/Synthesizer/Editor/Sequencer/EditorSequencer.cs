@@ -45,6 +45,14 @@ namespace Synthy
             Load(path);
         }
 
+        public static void Load(TrackAsset asset)
+        {
+            Current = asset.track;
+
+            string path = AssetDatabase.GetAssetPath(asset);
+            EditorPrefs.SetString("synth_file_path", path);
+        }
+
         public static void Load(string path)
         {
             if (string.IsNullOrEmpty(path)) return;
@@ -78,12 +86,17 @@ namespace Synthy
                 //if its the first time saving, then open the save file dialogue
                 //if the track has been saved more than once, then use the default path
                 //that was stored when the track loaded
-                string path = "Assets\\" + Current.name + ".asset";
+                string path = EditorPrefs.GetString("synth_file_path");
+                if (Current.saves == 0 || path.EndsWith(Extension))
+                {
+                    path = "Assets\\" + Current.name + ".asset";
+                }
 
                 Current.saves++;
                 TrackAsset asset = ScriptableObject.CreateInstance<TrackAsset>();
                 asset.track = new Track(Current);
                 AssetDatabase.CreateAsset(asset, path);
+                EditorPrefs.SetString("synth_file_path", path);
 
                 AssetDatabase.Refresh();
             }
@@ -102,12 +115,10 @@ namespace Synthy
                 //if the track has been saved more than once, then use the default path
                 //that was stored when the track loaded
                 string path = EditorPrefs.GetString("synth_file_path");
-                if (Current.saves == 0)
+                if (Current.saves == 0 || path.EndsWith(".asset"))
                 {
                     path = EditorUtility.SaveFilePanel("Saving new audio track...", Application.dataPath, Current.name, Extension);
                 }
-
-                path = path.Replace(".asset", "." + Extension);
 
                 Current.saves++;
                 string json = JsonUtility.ToJson(Current, true);
@@ -127,7 +138,7 @@ namespace Synthy
             return b1 + (s - a1) * (b2 - b1) / (a2 - a1);
         }
 
-        public static bool DrawBox(Rect rect, string name)
+        public static bool DrawBox(Rect rect, string name, float multiply = 1f)
         {
             bool contains = rect.Contains(Event.current.mousePosition);
 
@@ -137,12 +148,12 @@ namespace Synthy
             if (contains)
             {
                 //draw highligthed box
-                EditorGUI.DrawRect(rect, HoverColor);
+                EditorGUI.DrawRect(rect, HoverColor * multiply);
             }
             else
             {
                 //draw normal box
-                EditorGUI.DrawRect(rect, NormalColor);
+                EditorGUI.DrawRect(rect, NormalColor * multiply);
             }
 
             //draw label

@@ -28,12 +28,19 @@ namespace Synthy
         private Note noteDragging;
         private Vector2 lastMousePosition;
         private bool showInstrumentsPopup;
+        private double nextNotePlace;
+
+        public static Pattern Current { get; private set; }
 
         [MenuItem("Synthesizer/Sequencer/Piano roll")]
         public static void Initialize()
         {
             //Show existing window instance. If one doesn't exist, make one.
-            GetWindow<EditorSequencerPianoRoll>("Piano roll");
+            EditorSequencerPianoRoll window = GetWindow<EditorSequencerPianoRoll>("Piano roll");
+            window.instrument = 0;
+
+            //focus on first note
+            window.Focus();
         }
 
         public static void Initialize(InstancedPattern instancedPattern, Track track)
@@ -43,6 +50,9 @@ namespace Synthy
             var pattern = track.uniquePatterns[instancedPattern.pattern];
             Current = pattern;
             window.instrument = 0;
+
+            //focus on first note
+            window.Focus();
         }
 
         public static void Initialize(Pattern pattern)
@@ -51,15 +61,36 @@ namespace Synthy
 
             Current = pattern;
             window.instrument = 0;
+
+            //focus on first note
+            window.Focus();
         }
 
-        public static Pattern Current { get; private set; }
+        private new void Focus()
+        {
+            if (Current != null)
+            {
+                if (Current.notes[instrument].notes.Count > 0)
+                {
+                    scroll.y = Current.notes[instrument].notes[0].note;
+                }
+                else
+                {
+                    scroll.y = MaxKeys / 2f;
+                }
+            }
+            else
+            {
+                scroll.y = MaxKeys / 2f;
+            }
+
+            scroll.y -= 12;
+
+            lerpedScroll.y = scroll.y;
+        }
 
         private void OnEnable()
         {
-            scroll.y = MaxKeys / 2f;
-            lerpedScroll.y = scroll.y;
-
             zoom = 10f;
             lerpedZoom = zoom;
 
@@ -104,7 +135,7 @@ namespace Synthy
 
             if (Event.current.button == 2)
             {
-                scroll -= new Vector2(Event.current.delta.x, Event.current.delta.y / -KeyHeight);
+                scroll -= new Vector2(Event.current.delta.x / 2f, Event.current.delta.y / -KeyHeight / 2f);
                 lerpedScroll.y = scroll.y;
             }
 
@@ -140,6 +171,21 @@ namespace Synthy
             if (!showInstrumentsPopup)
             {
                 string name = instrument >= 0 && EditorSequencer.Current.instruments.Count > instrument ? EditorSequencer.Current.instruments[instrument] : "None";
+                string pattern = "";
+                if (Current != null)
+                {
+                    pattern = Current.name;
+                }
+                if (GUI.Button(rect, pattern, EditorStyles.toolbarButton))
+                {
+
+                }
+            }
+
+            rect.x += 200;
+            if (!showInstrumentsPopup)
+            {
+                string name = instrument >= 0 && EditorSequencer.Current.instruments.Count > instrument ? EditorSequencer.Current.instruments[instrument] : "None";
                 if (GUI.Button(rect, "Instrument: " + name, EditorStyles.toolbarButton))
                 {
                     if (EditorSequencer.Current.instruments.Count > 0)
@@ -167,7 +213,7 @@ namespace Synthy
             if (showInstrumentsPopup)
             {
                 GUI.enabled = true;
-                Rect rect = new Rect(0, 0, 200, TopOffset);
+                Rect rect = new Rect(200, 0, 200, TopOffset);
                 //Debug.Log(Event.current.button == 0 && Event.current.type == EventType.MouseDown);
                 int index = 0;
                 foreach (var instrument in EditorSequencer.Current.instruments)
@@ -177,6 +223,7 @@ namespace Synthy
                     {
                         this.instrument = index;
                         showInstrumentsPopup = false;
+                        nextNotePlace = EditorApplication.timeSinceStartup + 0.3;
                         break;
                     }
                     index++;
@@ -213,85 +260,129 @@ namespace Synthy
             {
                 bool selected = false;
                 //draw each note
-                foreach (var note in Current.notes[instrument].notes)
+
+                List<Rect> otherNotes = new List<Rect>();
+                for (int r = 0; r < Current.notes.Count; r++)
                 {
-                    int s_start = Mathf.RoundToInt(note.start * lerpedZoom);
-                    int s_end = Mathf.RoundToInt(note.end * lerpedZoom);
-
-                    float start = KeyWidth + s_start - scroll.x;
-                    float length = s_end - s_start;
-                    float y = Screen.height - (KeyHeight * note.note) + (lerpedScroll.y * KeyHeight) + 8;
-
-                    Rect rect = new Rect(start, TopOffset + y + 6, length, KeyHeight);
-                    bool contains = rect.Contains(Event.current.mousePosition);
-                    if (contains && dragOffset == null && noteDragging == null && MouseDown)
+                    for (int i = 0; i < Current.notes[r].notes.Count; i++)
                     {
-                        //drag note
-                        noteDragging = note;
-                        selected = true;
-                        dragOffset = new Vector2(s_start + KeyWidth, y) - Event.current.mousePosition;
-                        //Debug.Log("Started dragging note " + dragOffset);
-                    }
-                    else if (MouseDown && dragOffset != null && noteDragging != null)
-                    {
-                        if (note == noteDragging)
+                        Note note = Current.notes[r].notes[i];
+                        int s_start = Mathf.RoundToInt(note.start * lerpedZoom);
+                        int s_end = Mathf.RoundToInt(note.end * lerpedZoom);
+
+                        float start = KeyWidth + s_start - scroll.x;
+                        float length = s_end - s_start;
+                        float y = Screen.height - (KeyHeight * note.note) + (lerpedScroll.y * KeyHeight) + 8;
+
+                        Rect rect = new Rect(start, TopOffset + y + 6, length, KeyHeight);
+                        if (rect.xMax > KeyWidth && rect.xMin < Screen.width)
                         {
-                            selected = true;
+                            if (rect.yMax > 0 && rect.yMin < Screen.height)
+                            {
+                                bool contains = false;
 
-                            int noteLength = s_end - s_start;
-                            float x = (Event.current.mousePosition.x - KeyWidth + dragOffset.Value.x);
+                                //only process mouse clicks for the instrument currently selected
+                                if (r == instrument)
+                                {
+                                    contains = rect.Contains(Event.current.mousePosition);
+                                    if (contains && dragOffset == null && noteDragging == null && MouseDown)
+                                    {
+                                        //drag note
+                                        noteDragging = note;
+                                        selected = true;
+                                        dragOffset = new Vector2(s_start + KeyWidth, y) - Event.current.mousePosition;
+                                        //Debug.Log("Started dragging note " + dragOffset);
+                                    }
+                                    else if (MouseDown && dragOffset != null && noteDragging != null)
+                                    {
+                                        if (note == noteDragging)
+                                        {
+                                            selected = true;
 
-                            noteDragging.note = (byte)(Mathf.RoundToInt((Screen.height - Event.current.mousePosition.y + TopOffset + (lerpedScroll.y * KeyHeight)) / KeyHeight) + 1);
+                                            int noteLength = s_end - s_start;
+                                            float x = (Event.current.mousePosition.x - KeyWidth + dragOffset.Value.x);
 
-                            s_start = Mathf.CeilToInt(Mathf.RoundToInt(x / GridIntervalSubdivisions) * GridIntervalSubdivisions);
-                            s_end = s_start + noteLength;
+                                            noteDragging.note = (byte)(Mathf.RoundToInt((Screen.height - Event.current.mousePosition.y + TopOffset + (lerpedScroll.y * KeyHeight)) / KeyHeight) + 1);
 
-                            note.start = Mathf.RoundToInt(s_start / lerpedZoom);
-                            note.end = Mathf.RoundToInt(s_end / lerpedZoom);
-                            //Debug.Log("Dragging note");
+                                            s_start = Mathf.CeilToInt(Mathf.RoundToInt(x / GridIntervalSubdivisions) * GridIntervalSubdivisions);
+                                            s_start = s_start < 0 ? 0 : s_start;
+                                            s_end = s_start + noteLength;
+
+                                            note.start = Mathf.RoundToInt(s_start / lerpedZoom);
+                                            note.end = Mathf.RoundToInt(s_end / lerpedZoom);
+                                            //Debug.Log("Dragging note");
+                                        }
+                                    }
+                                    else if (!MouseDown)
+                                    {
+                                        if (dragOffset != null && noteDragging != null)
+                                        {
+                                            //Debug.Log("Finished dragging note");
+                                            dragOffset = null;
+
+                                            noteDragging = null;
+                                            selected = true;
+                                            break;
+                                        }
+                                    }
+
+                                    //right clicked, so delete a note
+                                    if (Event.current.type == EventType.MouseUp && Event.current.button == 1)
+                                    {
+                                        if (contains)
+                                        {
+                                            Current.notes[r].notes.Remove(note);
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                //only draw the note if its on screen
+
+                                if (r != instrument)
+                                {
+                                    //draw these notes now
+                                    EditorGUI.DrawRect(rect, Color.black * 0.2f);
+                                }
+                                else
+                                {
+                                    //add these notes to be drawn later
+                                    otherNotes.Add(rect);
+                                }
+                            }
                         }
                     }
-                    else if (!MouseDown)
-                    {
-                        if (dragOffset != null && noteDragging != null)
-                        {
-                            //Debug.Log("Finished dragging note");
-                            dragOffset = null;
+                }
 
-                            noteDragging = null;
-                            selected = true;
-                            break;
-                        }
-                    }
-
-                    //right clicked, so delete it
-                    if (Event.current.type == EventType.MouseUp && Event.current.button == 1)
-                    {
-                        if (rect.Contains(Event.current.mousePosition))
-                        {
-                            Current.notes[instrument].notes.Remove(note);
-                            break;
-                        }
-                    }
-
-                    EditorGUI.DrawRect(rect, Color.white);
+                //draw the current notes later
+                //on top of the previous notes
+                for (int i = 0; i < otherNotes.Count; i++)
+                {
+                    EditorGUI.DrawRect(otherNotes[i], otherNotes[i].Contains(Event.current.mousePosition) ? Color.white : Color.gray);
                 }
 
                 //clicked down, on nothing, place note at mouse position
                 if (!selected && Event.current.type == EventType.MouseUp)
                 {
-                    //left clicked
-                    if (Event.current.button == 0)
+                    if (Event.current.mousePosition.x > KeyWidth && Event.current.mousePosition.y > TopOffset + 18 && Event.current.mousePosition.x < Screen.width - 18)
                     {
-                        //Debug.Log("Added note");
+                        if (EditorApplication.timeSinceStartup > nextNotePlace)
+                        {
+                            //left clicked
+                            if (Event.current.button == 0)
+                            {
+                                //Debug.Log("Added note");
 
-                        float x = (Event.current.mousePosition.x - KeyWidth + lerpedScroll.x);
-                        byte note = (byte)(Mathf.RoundToInt((Screen.height - Event.current.mousePosition.y + TopOffset + (lerpedScroll.y * KeyHeight)) / KeyHeight) + 1);
-                        float s_start = Mathf.CeilToInt(Mathf.RoundToInt(x / GridIntervalSubdivisions) * GridIntervalSubdivisions);
-                        float s_end = s_start + 50;
+                                float x = (Event.current.mousePosition.x - KeyWidth + lerpedScroll.x);
+                                byte note = (byte)(Mathf.RoundToInt((Screen.height - Event.current.mousePosition.y + TopOffset + (lerpedScroll.y * KeyHeight)) / KeyHeight) + 1);
+                                float s_start = Mathf.CeilToInt(Mathf.RoundToInt(x / GridIntervalSubdivisions) * GridIntervalSubdivisions);
+                                s_start = s_start < 0 ? 0 : s_start;
+                                float s_end = s_start + 50;
 
-                        Note newNote = new Note(note, Mathf.RoundToInt(s_start / lerpedZoom), Mathf.RoundToInt(s_end / lerpedZoom));
-                        Current.notes[instrument].notes.Add(newNote);
+                                Note newNote = new Note(note, Mathf.RoundToInt(s_start / lerpedZoom), Mathf.RoundToInt(s_end / lerpedZoom));
+                                Current.notes[instrument].notes.Add(newNote);
+                            }
+                        }
                     }
                 }
             }
@@ -330,9 +421,21 @@ namespace Synthy
                 {
                     if (x >= KeyWidth)
                     {
-                        GL.Color(Color.black * 0.2f);
-                        GL.Vertex3(x - scroll.x, 0, 0);
-                        GL.Vertex3(x - scroll.x, Screen.height, 0);
+                        //draw bar line
+                        if ((x - KeyWidth) % (KeyWidth * 4) == 0)
+                        {
+                            GL.Color(Color.black * 0.4f);
+                            GL.Vertex3(x - scroll.x, 0, 0);
+                            GL.Vertex3(x - scroll.x, Screen.height, 0);
+                        }
+                        //draw regular line (1/4)th
+                        else
+                        {
+                            GL.Color(Color.black * 0.2f);
+                            GL.Vertex3(x - scroll.x, 0, 0);
+                            GL.Vertex3(x - scroll.x, Screen.height, 0);
+                        }
+
 
                         for (int i = 0; i < GridIntervalSubdivisions; i++)
                         {

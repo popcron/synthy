@@ -15,13 +15,14 @@ namespace Synthy
 
         public Track()
         {
-            instruments.Add("Saw");
-            instruments.Add("Sine");
-            instruments.Add("Pulse");
+            //add default instruments
+            //instruments.Add("Saw");
+            //instruments.Add("Sine");
+            //instruments.Add("Pulse");
 
-            Pattern pattern = new Pattern("Pattern 1", this);
-
-            uniquePatterns.Add(pattern);
+            //add a default pattern
+            //Pattern pattern = new Pattern("Pattern 1", this);
+            //uniquePatterns.Add(pattern);
         }
 
         public Track(Track original)

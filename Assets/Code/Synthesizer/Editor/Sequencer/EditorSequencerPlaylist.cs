@@ -5,6 +5,7 @@ using UnityEditor;
 
 namespace Synthy
 {
+    using System;
     using static EditorSequencer;
     public class EditorSequencerPlaylist : EditorWindow
     {
@@ -20,6 +21,8 @@ namespace Synthy
         private InstancedPattern patternDragging;
         private Vector2 dragStart;
         private float dragDistance;
+        private double nextPianoRollOpen;
+        private double? lastClick;
 
         [MenuItem("Synthesizer/Sequencer/Playlist")]
         public static void Initialize()
@@ -69,11 +72,17 @@ namespace Synthy
             }
 
             //draw the patterns
+            bool deselect = true;
             foreach (var pattern in Current.patterns)
             {
                 Rect rect = new Rect(LeftOffset + pattern.time, TopOffset + pattern.order * TrackHeight, pattern.GetLength(Current), TrackHeight);
+                bool contains = rect.Contains(Event.current.mousePosition);
+                if (contains)
+                {
+                    deselect = false;
+                }
 
-                if (MouseDown && rect.Contains(Event.current.mousePosition) && dragOffset == null)
+                if (MouseDown && contains && dragOffset == null)
                 {
                     //start dragging the pattern
                     var pos = new Vector2(pattern.time + LeftOffset, TopOffset + pattern.order * TrackHeight);
@@ -89,7 +98,14 @@ namespace Synthy
                     {
                         //snap the position of the pattern to the mouse
                         pattern.time = GetPatternPosition().x - LeftOffset - (int)dragOffset.Value.x;
-                        pattern.order = (byte)(((uint)GetPatternPosition().y - (uint)dragOffset.Value.y) / (float)TrackHeight);
+                        pattern.time = pattern.time < 0 ? 0 : pattern.time;
+
+                        float my = Event.current.mousePosition.y < TopOffset ? TopOffset : Event.current.mousePosition.y;
+                        int patternPositionY = GetPatternPosition(new Vector2(Event.current.mousePosition.x, my)).y;
+                        patternPositionY = patternPositionY < 0 ? 0 : patternPositionY;
+
+                        pattern.order = (byte)(((uint)patternPositionY - (uint)dragOffset.Value.y) / (float)TrackHeight);
+                        pattern.order = pattern.order > MaxTracks - 1 ? (byte)(MaxTracks - 1) : pattern.order;
                         dragDistance = Vector2.Distance(dragStart, Event.current.mousePosition);
                     }
                 }
@@ -102,17 +118,68 @@ namespace Synthy
                 }
 
                 //display the pattern box
-                if (DrawBox(rect, pattern.name))
+                if (DrawBox(rect, pattern.name, 0.5f))
                 {
-                    //Debug.Log(dragDistance);
-                    if (dragDistance < 1f)
+                    if (EditorApplication.timeSinceStartup > nextPianoRollOpen)
                     {
-                        EditorSequencerPianoRoll.Initialize(pattern, Current);
+                        //Debug.Log(Event.current.button);
+                        //only register a click if the drag distance was small enough
+                        if (dragDistance < 1f)
+                        {
+                            //left click to edit
+                            //right click to delete
+                            if (Event.current.button == 0)
+                            {
+                                //double click to open piano roll
+                                if (lastClick != null && EditorApplication.timeSinceStartup - lastClick < 0.25)
+                                {
+                                    EditorSequencerPianoRoll.Initialize(pattern, Current);
+                                    lastClick = null;
+                                }
+                                else
+                                {
+                                    //if double click failed
+                                    //simply select it on the browser
+                                    if(pattern.pattern != EditorSequencerBrowser.Selected)
+                                    {
+                                        EditorSequencerBrowser.Selected = pattern.pattern;
+
+                                        //new selected pattern is different, reset the double click timer
+                                        lastClick = null;
+                                    }
+                                    else
+                                    {
+                                        lastClick = EditorApplication.timeSinceStartup;
+                                    }
+                                }
+                            }
+                            else if (Event.current.button == 1)
+                            {
+                                Current.patterns.Remove(pattern);
+                                return;
+                            }
+                        }
                     }
                 }
 
                 //display the pattern notes
                 DrawNotes(rect, pattern);
+            }
+
+            //didnt click on any patterns in the playlist
+            //so place a pattern here if one is selected
+            if (deselect && EditorSequencerBrowser.Selected != null)
+            {
+                if (Event.current.button == 0)
+                {
+                    if (Event.current.type == EventType.MouseDown)
+                    {
+                        nextPianoRollOpen = EditorApplication.timeSinceStartup + 0.5;
+                        var mouse = GetPatternPosition();
+                        var pattern = Current.uniquePatterns[EditorSequencerBrowser.Selected.Value];
+                        Add(mouse, pattern);
+                    }
+                }
             }
         }
 
@@ -175,20 +242,35 @@ namespace Synthy
             }
         }
 
+        private void Add(Vector2Int position, Pattern pattern)
+        {
+            InstancedPattern instancedPattern = new InstancedPattern(pattern, Current)
+            {
+                time = position.x - LeftOffset,
+                order = (byte)(position.y / (float)TrackHeight)
+            };
+            Current.patterns.Add(instancedPattern);
+        }
+
         private void Drag()
         {
             //visualize where the pattern would drop to
             if (DragAndDrop.visualMode == DragAndDropVisualMode.Link)
             {
-                int? index = (int)DragAndDrop.GetGenericData("pattern_index");
-                var mouse = GetPatternPosition();
-                Rect position = new Rect(mouse.x, mouse.y, Current.uniquePatterns[index.Value].Duration, TrackHeight);
-                EditorGUI.DrawRect(position, new Color(1f, 1f, 1f, 0.2f));
+                //preview pattern
+                object value = DragAndDrop.GetGenericData("pattern_index");
+                if (value != null)
+                {
+                    int? index = (int)value;
+                    var mouse = GetPatternPosition();
+                    Rect position = new Rect(mouse.x, mouse.y, Current.uniquePatterns[index.Value].Duration, TrackHeight);
+                    EditorGUI.DrawRect(position, new Color(1f, 1f, 1f, 0.2f));
+                }
             }
 
             if (Event.current.type == EventType.DragUpdated)
             {
-                // called every frame that a drag operation is occuring and the mouse is being dragged
+                //check if its dropping a pattern
                 object value = DragAndDrop.GetGenericData("pattern_index");
                 if (value != null)
                 {
@@ -202,23 +284,47 @@ namespace Synthy
                         }
                     }
                 }
+
+                //check if its a track file
+                if (DragAndDrop.objectReferences != null)
+                {
+                    value = DragAndDrop.objectReferences[0];
+                    TrackAsset track = value as TrackAsset;
+                    if (track != null)
+                    {
+                        DragAndDrop.visualMode = DragAndDropVisualMode.Link;
+                    }
+                }
             }
             else if (Event.current.type == EventType.DragPerform)
             {
                 // called on the frame that the dragged object gets dropped (if it's still inside this window)
-                int? index = (int)DragAndDrop.GetGenericData("pattern_index");
-                if (index != null)
+                object value = DragAndDrop.GetGenericData("pattern_index");
+                if (value != null)
                 {
-                    var mouse = GetPatternPosition();
-                    DragAndDrop.AcceptDrag();
-
-                    Pattern pattern = Current.uniquePatterns[index.Value];
-                    InstancedPattern instancedPattern = new InstancedPattern(pattern.name, index.Value)
+                    //dropped a pattern
+                    int? index = (int)DragAndDrop.GetGenericData("pattern_index");
+                    if (index != null)
                     {
-                        time = mouse.x - LeftOffset,
-                        order = (byte)(mouse.y / (float)TrackHeight)
-                    };
-                    Current.patterns.Add(instancedPattern);
+                        var mouse = GetPatternPosition();
+                        DragAndDrop.AcceptDrag();
+
+                        Pattern pattern = Current.uniquePatterns[index.Value];
+                        Add(mouse, pattern);
+                        return;
+                    }
+                }
+
+                if (DragAndDrop.objectReferences != null)
+                {
+                    value = DragAndDrop.objectReferences[0];
+                    //dropped a track
+                    TrackAsset track = value as TrackAsset;
+                    if (track != null)
+                    {
+                        //load this track
+                        Load(track);
+                    }
                 }
             }
         }
