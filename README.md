@@ -2,6 +2,8 @@
 An experimental synthesizer in unity, definetly not optimized, but it works.
 Contributions and imporovements are welcome!
 
+![Example](https://media.discordapp.net/attachments/85593628650504192/480146029484965898/unknown.png)
+
 ### Requirements
 Unity 2018.2.3f1
 
