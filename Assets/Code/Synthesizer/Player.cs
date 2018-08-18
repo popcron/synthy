@@ -89,6 +89,7 @@ namespace Synthy
         {
             Synthesizer synthesizer = Instantiate(this.synthesizer);
             synthesizer.Initialize(GetInstrument(instrument));
+            synthesizer.allowKeyboard = synthesizers.Count == 0;
 
             synthesizers.Add(synthesizer);
         }

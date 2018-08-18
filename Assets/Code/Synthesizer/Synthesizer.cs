@@ -13,6 +13,7 @@ namespace Synthy
         public const int SampleFrequency = 44100;
         public const int MiddleC = 72;
 
+        public bool allowKeyboard = false;
         public Preset preset;
         public int polyphony = 16;
         public float tuning = 440;
@@ -108,11 +109,6 @@ namespace Synthy
 
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                Play(MiddleC, 0.5f);
-            }
-
             if (lastGenerators != preset.Generators.Count)
             {
                 lastGenerators = preset.Generators.Count;
@@ -125,21 +121,24 @@ namespace Synthy
                 CreateVoices();
             }
 
-            foreach (var key in Helper.Keys)
+            if (allowKeyboard)
             {
-                int note = Helper.GetNoteFromKeyCode(key);
-                if (Input.GetKeyDown(key))
+                foreach (var key in Helper.Keys)
                 {
-                    if (!notes.Contains(note))
+                    int note = Helper.GetNoteFromKeyCode(key);
+                    if (Input.GetKeyDown(key))
                     {
-                        notes.Add(note);
+                        if (!notes.Contains(note))
+                        {
+                            notes.Add(note);
+                        }
                     }
-                }
-                if (Input.GetKeyUp(key))
-                {
-                    while (notes.Contains(note))
+                    if (Input.GetKeyUp(key))
                     {
-                        notes.Remove(note);
+                        while (notes.Contains(note))
+                        {
+                            notes.Remove(note);
+                        }
                     }
                 }
             }
