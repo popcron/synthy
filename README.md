@@ -2,6 +2,7 @@
 An experimental synthesizer in unity, definetly not optimized, but it works.
 Contributions and imporovements are welcome!
 
+Video example: https://streamable.com/ehrll
 ![Example](https://media.discordapp.net/attachments/85593628650504192/480146029484965898/unknown.png)
 
 ### Requirements
