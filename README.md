@@ -12,8 +12,15 @@ Unity 2018.2.3f1
 Incremental compiler 0.0.42
 
 ### Example usage
+To play a track file
+1. Create empty game object
+2. Add Player to it
+3. Assign the Track file
+4. Toggle play when in play mode
+
+To play single notes
 1. Create empty game object
 2. Add Synthesizer to it
+3. Enable keyboard input
 
-Or drag and drop the Synthesizer prefab.
-Then, call `Syntheziser.Play(note, duration)` in the same scene, or use the keyboard.
+To play a single note from code, the Synthesizer component has a `Play(note, duration)` method.
