@@ -33,7 +33,7 @@ namespace Synthy
             get
             {
                 var notes = Notes;
-                if (notes.Count == 0) return 100;
+                if (notes.Count == 0) return 80;
 
                 int max = int.MinValue;
                 int index = -1;

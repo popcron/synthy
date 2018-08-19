@@ -93,11 +93,23 @@ namespace Synthy
                 }
 
                 Current.saves++;
-                TrackAsset asset = ScriptableObject.CreateInstance<TrackAsset>();
-                asset.track = new Track(Current);
-                AssetDatabase.CreateAsset(asset, path);
-                EditorPrefs.SetString("synth_file_path", path);
 
+                //check if the file exists
+                //if it does, then dont create new asset
+                
+                TrackAsset asset = AssetDatabase.LoadAssetAtPath<TrackAsset>(path);
+                if (asset == null)
+                {
+                    asset = ScriptableObject.CreateInstance<TrackAsset>();
+                    asset.track = new Track(Current);
+                    AssetDatabase.CreateAsset(asset, path);
+                }
+                else
+                {
+                    AssetDatabase.SaveAssets();
+                }
+
+                EditorPrefs.SetString("synth_file_path", path);
                 AssetDatabase.Refresh();
             }
             else

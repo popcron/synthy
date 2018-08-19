@@ -303,6 +303,7 @@ namespace Synthy
                 if (value != null)
                 {
                     //dropped a pattern
+                    //also select this pattern in the browser
                     int? index = (int)DragAndDrop.GetGenericData("pattern_index");
                     if (index != null)
                     {
@@ -311,6 +312,8 @@ namespace Synthy
 
                         Pattern pattern = Current.uniquePatterns[index.Value];
                         Add(mouse, pattern);
+
+                        EditorSequencerBrowser.Selected = index;
                         return;
                     }
                 }

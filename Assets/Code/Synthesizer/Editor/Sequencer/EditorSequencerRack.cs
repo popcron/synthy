@@ -14,6 +14,8 @@ namespace Synthy
         private double? lastClick;
         private static EditorSequencerRack instance;
         private List<Preset> presets = new List<Preset>();
+        private int? instrumentSelected;
+        private double nextUnselect;
 
         [MenuItem("Synthesizer/Sequencer/Instruments")]
         public static void Initialize()
@@ -54,10 +56,18 @@ namespace Synthy
             }
 
             //draw list of all the instruments in this track
+            bool selected = false;
             for (int i = 0; i < Current.instruments.Count; i++)
             {
                 string instrument = Current.instruments[i];
                 Rect rect = GUILayoutUtility.GetRect(Screen.width, RackHeight);
+                if (rect.Contains(Event.current.mousePosition))
+                {
+                    instrumentSelected = i;
+                    selected = true;
+                    nextUnselect = EditorApplication.timeSinceStartup + 0.1;
+                }
+
                 if (DrawBox(rect, instrument))
                 {
                     if(Event.current.button == 0)
@@ -83,6 +93,11 @@ namespace Synthy
                         return;
                     }
                 }
+            }
+            
+            if (!selected && EditorApplication.timeSinceStartup > nextUnselect)
+            {
+                instrumentSelected = null;
             }
         }
 
@@ -113,20 +128,29 @@ namespace Synthy
                     Preset preset = value as Preset;
                     if (preset != null)
                     {
-                        if (!Current.instruments.Contains(preset.Name))
+                        if(instrumentSelected != null)
                         {
-                            //Debug.Log("Dropped " + preset);
-                            DragAndDrop.AcceptDrag();
-
-                            //add the preset name as an instrument
-                            Current.instruments.Add(preset.Name);
-
-                            //also add a new list of notes to every pattern if its missing a list
-                            foreach (var pattern in Current.uniquePatterns)
+                            //dropped instrument on top of another one
+                            //replace it
+                            Current.instruments[instrumentSelected.Value] = preset.Name;
+                        }
+                        else
+                        {
+                            if (!Current.instruments.Contains(preset.Name))
                             {
-                                if (pattern.notes.Count < Current.instruments.Count)
+                                //Debug.Log("Dropped " + preset);
+                                DragAndDrop.AcceptDrag();
+
+                                //add the preset name as an instrument
+                                Current.instruments.Add(preset.Name);
+
+                                //also add a new list of notes to every pattern if its missing a list
+                                foreach (var pattern in Current.uniquePatterns)
                                 {
-                                    pattern.notes.Add(new Rack());
+                                    if (pattern.notes.Count < Current.instruments.Count)
+                                    {
+                                        pattern.notes.Add(new Rack());
+                                    }
                                 }
                             }
                         }

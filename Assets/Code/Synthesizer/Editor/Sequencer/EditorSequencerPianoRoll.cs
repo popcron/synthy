@@ -29,6 +29,8 @@ namespace Synthy
         private Vector2 lastMousePosition;
         private bool showInstrumentsPopup;
         private double nextNotePlace;
+        private bool resizing = false;
+        private bool resizingRight;
 
         public static Pattern Current { get; private set; }
 
@@ -261,7 +263,9 @@ namespace Synthy
                 bool selected = false;
                 //draw each note
 
-                List<Rect> otherNotes = new List<Rect>();
+                List<Rect> currentNotes = new List<Rect>();
+                List<bool> highlightedNotes = new List<bool>();
+
                 for (int r = 0; r < Current.notes.Count; r++)
                 {
                     for (int i = 0; i < Current.notes[r].notes.Count; i++)
@@ -275,6 +279,7 @@ namespace Synthy
                         float y = Screen.height - (KeyHeight * note.note) + (lerpedScroll.y * KeyHeight) + 8;
 
                         Rect rect = new Rect(start, TopOffset + y + 6, length, KeyHeight);
+                        Rect resizeRect = new Rect(rect.x - 5, rect.y, rect.width + 10, rect.x);
                         if (rect.xMax > KeyWidth && rect.xMin < Screen.width)
                         {
                             if (rect.yMax > 0 && rect.yMin < Screen.height)
@@ -284,45 +289,144 @@ namespace Synthy
                                 //only process mouse clicks for the instrument currently selected
                                 if (r == instrument)
                                 {
-                                    contains = rect.Contains(Event.current.mousePosition);
-                                    if (contains && dragOffset == null && noteDragging == null && MouseDown)
+                                    if(!resizing && resizeRect.Contains(Event.current.mousePosition))
                                     {
-                                        //drag note
-                                        noteDragging = note;
-                                        selected = true;
-                                        dragOffset = new Vector2(s_start + KeyWidth, y) - Event.current.mousePosition;
-                                        //Debug.Log("Started dragging note " + dragOffset);
-                                    }
-                                    else if (MouseDown && dragOffset != null && noteDragging != null)
-                                    {
-                                        if (note == noteDragging)
+                                        bool clicked = Event.current.button == 0 && MouseDown;
+                                        //check if the mouse is on the left side
+                                        Rect left = new Rect(resizeRect.x, resizeRect.y, 10, resizeRect.height);
+                                        Rect right = new Rect(resizeRect.x + resizeRect.width - 10, resizeRect.y, 10, resizeRect.height);
+
+                                        if (left.Contains(Event.current.mousePosition))
                                         {
                                             selected = true;
 
-                                            int noteLength = s_end - s_start;
-                                            float x = (Event.current.mousePosition.x - KeyWidth + dragOffset.Value.x);
+                                            if(clicked)
+                                            {
+                                                //drag left
+                                                resizingRight = false;
+                                                resizing = true;
+                                                noteDragging = note;
+                                                dragOffset = new Vector2(s_start + KeyWidth, y) - Event.current.mousePosition;
+                                            }
+                                        }
 
-                                            noteDragging.note = (byte)(Mathf.RoundToInt((Screen.height - Event.current.mousePosition.y + TopOffset + (lerpedScroll.y * KeyHeight)) / KeyHeight) + 1);
+                                        if (right.Contains(Event.current.mousePosition))
+                                        {
+                                            selected = true;
 
-                                            s_start = Mathf.CeilToInt(Mathf.RoundToInt(x / GridIntervalSubdivisions) * GridIntervalSubdivisions);
-                                            s_start = s_start < 0 ? 0 : s_start;
-                                            s_end = s_start + noteLength;
-
-                                            note.start = Mathf.RoundToInt(s_start / lerpedZoom);
-                                            note.end = Mathf.RoundToInt(s_end / lerpedZoom);
-                                            //Debug.Log("Dragging note");
+                                            if (clicked)
+                                            {
+                                                //drag left
+                                                resizingRight = true;
+                                                resizing = true;
+                                                noteDragging = note;
+                                                dragOffset = new Vector2(s_start + KeyWidth, y) - Event.current.mousePosition;
+                                            }
                                         }
                                     }
-                                    else if (!MouseDown)
-                                    {
-                                        if (dragOffset != null && noteDragging != null)
-                                        {
-                                            //Debug.Log("Finished dragging note");
-                                            dragOffset = null;
 
-                                            noteDragging = null;
+                                    if (!resizing)
+                                    {
+                                        //drag
+                                        contains = rect.Contains(Event.current.mousePosition);
+                                        if (contains && dragOffset == null && noteDragging == null && MouseDown)
+                                        {
+                                            //drag note
+                                            noteDragging = note;
                                             selected = true;
-                                            break;
+                                            dragOffset = new Vector2(s_start + KeyWidth, y) - Event.current.mousePosition;
+                                            //Debug.Log("Started dragging note " + dragOffset);
+                                        }
+                                        else if (MouseDown && dragOffset != null && noteDragging != null)
+                                        {
+                                            if (note == noteDragging)
+                                            {
+                                                selected = true;
+
+                                                int noteLength = s_end - s_start;
+                                                float x = (Event.current.mousePosition.x - KeyWidth + dragOffset.Value.x);
+
+                                                noteDragging.note = (byte)(Mathf.RoundToInt((Screen.height - Event.current.mousePosition.y + TopOffset + (lerpedScroll.y * KeyHeight)) / KeyHeight) + 1);
+
+                                                s_start = Mathf.CeilToInt(Mathf.RoundToInt(x / GridIntervalSubdivisions) * GridIntervalSubdivisions);
+                                                s_start = s_start < 0 ? 0 : s_start;
+                                                s_end = s_start + noteLength;
+
+                                                note.start = Mathf.RoundToInt(s_start / lerpedZoom);
+                                                note.end = Mathf.RoundToInt(s_end / lerpedZoom);
+                                                //Debug.Log("Dragging note");
+                                            }
+                                        }
+                                        else if (!MouseDown)
+                                        {
+                                            if (dragOffset != null && noteDragging != null)
+                                            {
+                                                //Debug.Log("Finished dragging note");
+                                                dragOffset = null;
+
+                                                noteDragging = null;
+                                                selected = true;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        //resize
+                                        if (MouseDown && dragOffset != null && noteDragging != null)
+                                        {
+                                            if (note == noteDragging)
+                                            {
+                                                int noteLength = s_end - s_start;
+                                                selected = true;
+
+                                                float x = (Event.current.mousePosition.x - KeyWidth + dragOffset.Value.x);
+                                                
+                                                //resize start
+                                                if (!resizingRight)
+                                                {
+                                                    s_start = Mathf.CeilToInt(Mathf.RoundToInt(x / GridIntervalSubdivisions) * GridIntervalSubdivisions);
+                                                    s_start = s_start < 0 ? 0 : s_start;
+
+                                                    //note.end = Mathf.RoundToInt(s_end / lerpedZoom);
+                                                    note.start = Mathf.RoundToInt(s_start / lerpedZoom);
+                                                    note.start = note.start > note.end - Note.MinDuration ? note.end - Note.MinDuration : note.start;
+                                                }
+                                                //resize end
+                                                else
+                                                {
+                                                    s_start = Mathf.CeilToInt(Mathf.RoundToInt(x / GridIntervalSubdivisions) * GridIntervalSubdivisions);
+                                                    s_start = s_start < 0 ? 0 : s_start;
+                                                    //s_end = s_start + Mathf.RoundToInt(note.Duration * lerpedZoom);
+
+                                                    int newEnd = Mathf.RoundToInt(s_start / lerpedZoom) + note.Duration;
+                                                    newEnd = newEnd < note.start + Note.MinDuration ? note.start + Note.MinDuration : newEnd;
+
+                                                    if(note.end != newEnd)
+                                                    {
+                                                        note.end = newEnd;
+
+                                                        //reset the dragging offset
+                                                        s_start = Mathf.RoundToInt(note.start * lerpedZoom);
+                                                        dragOffset = new Vector2(s_start + KeyWidth, y) - Event.current.mousePosition;
+                                                    }
+                                                }
+
+                                                //Debug.Log("Dragging note");
+                                            }
+                                        }
+                                        else if (!MouseDown)
+                                        {
+                                            if (dragOffset != null && noteDragging != null)
+                                            {
+                                                //Debug.Log("Finished dragging note");
+                                                dragOffset = null;
+
+                                                noteDragging = null;
+                                                selected = true;
+                                                resizing = false;
+                                                break;
+                                            }
                                         }
                                     }
 
@@ -338,7 +442,6 @@ namespace Synthy
                                 }
 
                                 //only draw the note if its on screen
-
                                 if (r != instrument)
                                 {
                                     //draw these notes now
@@ -347,7 +450,15 @@ namespace Synthy
                                 else
                                 {
                                     //add these notes to be drawn later
-                                    otherNotes.Add(rect);
+                                    currentNotes.Add(rect);
+                                    if(noteDragging != null)
+                                    {
+                                        highlightedNotes.Add(noteDragging == note);
+                                    }
+                                    else
+                                    {
+                                        highlightedNotes.Add(false);
+                                    }
                                 }
                             }
                         }
@@ -356,9 +467,9 @@ namespace Synthy
 
                 //draw the current notes later
                 //on top of the previous notes
-                for (int i = 0; i < otherNotes.Count; i++)
+                for (int i = 0; i < currentNotes.Count; i++)
                 {
-                    EditorGUI.DrawRect(otherNotes[i], otherNotes[i].Contains(Event.current.mousePosition) ? Color.white : Color.gray);
+                    EditorGUI.DrawRect(currentNotes[i], currentNotes[i].Contains(Event.current.mousePosition) || highlightedNotes[i] ? Color.white : Color.gray);
                 }
 
                 //clicked down, on nothing, place note at mouse position
@@ -379,7 +490,8 @@ namespace Synthy
                                 s_start = s_start < 0 ? 0 : s_start;
                                 float s_end = s_start + 50;
 
-                                Note newNote = new Note(note, Mathf.RoundToInt(s_start / lerpedZoom), Mathf.RoundToInt(s_end / lerpedZoom));
+                                int s = Mathf.RoundToInt(s_start / lerpedZoom);
+                                Note newNote = new Note(note, s, s + Note.MinDuration);
                                 Current.notes[instrument].notes.Add(newNote);
                             }
                         }

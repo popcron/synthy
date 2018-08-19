@@ -33,7 +33,35 @@ namespace Synthy
             //display the create pattern button
             if (GUILayout.Button("New Pattern", EditorStyles.toolbarButton))
             {
-                var pattern = new Pattern("Pattern " + (Current.uniquePatterns.Count + 1), Current);
+                int runs = 1;
+                string patternName = "Pattern " + runs;
+                while (true)
+                {
+                    runs++;
+
+                    //check if this pattern name already exists
+                    bool exists = false;
+                    for (int i = 0; i < Current.uniquePatterns.Count; i++)
+                    {
+                        if(Current.uniquePatterns[i].name == patternName)
+                        {
+                            //this pattern name is already taken,
+                            //make a new one
+
+                            patternName = "Pattern " + runs;
+                            exists = true;
+                            break;
+                        }
+                    }
+
+                    if(!exists)
+                    {
+                        //pattern with this name doesnt exist
+                        //so break
+                        break;
+                    }
+                }
+                var pattern = new Pattern(patternName, Current);
                 Current.uniquePatterns.Add(pattern);
             }
 
@@ -121,6 +149,15 @@ namespace Synthy
                             }
 
                             d++;
+                        }
+
+                        //shift other patterns down
+                        for (int p = 0; p < Current.patterns.Count; p++)
+                        {
+                            if (Current.patterns[p].pattern != 0)
+                            {
+                                Current.patterns[p].pattern--;
+                            }
                         }
 
                         return;

@@ -1,0 +1,81 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 75be729f25ca11642b4dec694531c6b5, type: 3}
+  m_Name: Undone
+  m_EditorClassIdentifier: 
+  track:
+    saves: 10
+    name: Track
+    bpm: 250
+    instruments:
+    - Saw
+    patterns:
+    - name: Pattern 1
+      time: 0
+      order: 0
+      pattern: 0
+    - name: Pattern 1
+      time: 160
+      order: 0
+      pattern: 0
+    uniquePatterns:
+    - name: Pattern 1
+      notes:
+      - notes:
+        - note: 74
+          start: 0
+          end: 9
+        - note: 83
+          start: 10
+          end: 19
+        - note: 89
+          start: 20
+          end: 29
+        - note: 90
+          start: 30
+          end: 39
+        - note: 79
+          start: 40
+          end: 49
+        - note: 83
+          start: 50
+          end: 59
+        - note: 89
+          start: 60
+          end: 69
+        - note: 90
+          start: 70
+          end: 79
+        - note: 81
+          start: 80
+          end: 89
+        - note: 85
+          start: 90
+          end: 99
+        - note: 91
+          start: 100
+          end: 109
+        - note: 90
+          start: 110
+          end: 119
+        - note: 79
+          start: 120
+          end: 129
+        - note: 83
+          start: 130
+          end: 139
+        - note: 89
+          start: 140
+          end: 149
+        - note: 90
+          start: 150
+          end: 159
+      - notes: []

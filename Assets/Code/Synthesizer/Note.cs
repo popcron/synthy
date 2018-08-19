@@ -5,6 +5,8 @@ namespace Synthy
     [Serializable]
     public class Note
     {
+        public const int MinDuration = 4;
+
         public byte note;
         public int start;
         public int end;
@@ -16,6 +18,12 @@ namespace Synthy
             this.end = end;
         }
 
-        public float Duration => end - start;
+        public int Duration
+        {
+            get
+            {
+                return end - start;
+            }
+        }
     }
 }
