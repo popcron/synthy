@@ -26,47 +26,6 @@ namespace Popcron.Synth
             return Mathf.Pow(2, (note - 69) / 12f) * 440f;
         }
 
-        public static KeyCode[] Keys = new KeyCode[]
-        {
-            KeyCode.Z,              //0
-            KeyCode.S,              //1
-            KeyCode.X,              //2
-            KeyCode.D,              //3
-            KeyCode.C,              //4
-            KeyCode.V,              //5
-            KeyCode.G,              //6
-            KeyCode.B,              //7
-            KeyCode.H,              //8
-            KeyCode.N,              //9
-            KeyCode.J,              //10
-            KeyCode.M,              //11
-            KeyCode.Comma,          //12
-            KeyCode.L,              //13
-            KeyCode.Period,         //14
-            KeyCode.Semicolon,      //15
-            KeyCode.Slash,          //16
-            KeyCode.Q,              //17
-            KeyCode.Alpha2,         //18
-            KeyCode.W,              //19
-            KeyCode.Alpha3,         //20
-            KeyCode.E,              //21
-            KeyCode.R,              //22
-            KeyCode.Alpha5,         //23
-            KeyCode.T,              //24
-            KeyCode.Alpha6,         //25
-            KeyCode.Y,              //26
-            KeyCode.Alpha7,         //27
-            KeyCode.U,              //28
-            KeyCode.I,              //29
-            KeyCode.Alpha9,         //30
-            KeyCode.O,              //31
-            KeyCode.Alpha0,         //32
-            KeyCode.P,              //33
-            KeyCode.LeftBracket,    //34
-            KeyCode.Equals,         //35
-            KeyCode.RightBracket    //36
-        };
-
         public static int? GetNoteFromKeyCode(KeyCode keyCode)
         {
             //bottom row

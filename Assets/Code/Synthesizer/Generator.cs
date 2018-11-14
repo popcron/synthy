@@ -17,7 +17,7 @@ namespace Popcron.Synth
         private bool active;
 
         [SerializeField]
-        private float volume;
+        private double volume;
 
         private double phase;
         private double lastPhase;
@@ -27,7 +27,7 @@ namespace Popcron.Synth
         private Material lineMaterial;
         private AudioSource audioSource;
 
-        private List<Vector2> history = new List<Vector2>();
+        private List<double> history = new List<double>();
 
         public GeneratorPreset Preset
         {
@@ -45,7 +45,8 @@ namespace Popcron.Synth
         {
             get
             {
-                return frequency;
+                double vibrato = Math.Sin(dspTime * preset.vibratoSpeed) * preset.vibratoDepth;
+                return frequency + vibrato;
             }
             set
             {
@@ -65,7 +66,7 @@ namespace Popcron.Synth
             }
         }
 
-        public float Volume
+        public double Volume
         {
             get
             {
@@ -113,14 +114,9 @@ namespace Popcron.Synth
             {
                 int index = (history.Count - 1) - i;
                 float x = i * speed;
-                if (x > Screen.width) break;
+                if (x > Screen.width) continue;
 
-                float y = history[index].y;
-                GL.Vertex3(x, (y * 0.2f) + Screen.height * 0.5f, 0);
-
-                //next wave
-                x = (i + 1) * speed;
-                y = history[index - 1].y;
+                float y = (float)history[index];
                 GL.Vertex3(x, (y * 0.2f) + Screen.height * 0.5f, 0);
             }
 
@@ -166,19 +162,8 @@ namespace Popcron.Synth
             dspTime = AudioSettings.dspTime;
 
             //set history
-            float x = (float)wave;
-            float y = (float)frequency - 440f;
-            if (!Active)
-            {
-                y = Mathf.NegativeInfinity;
-            }
-            if (wave == 0)
-            {
-                x = Mathf.NegativeInfinity;
-            }
-
-            history.Add(new Vector2(x, y));
-            if (history.Count > sampleRate)
+            history.Add(Frequency - 400);
+            if (history.Count > 300)
             {
                 history.RemoveAt(0);
             }
@@ -186,24 +171,41 @@ namespace Popcron.Synth
 
         private void OnAudioFilterRead(float[] data, int channels)
         {
-            double vibrato = Math.Sin(dspTime * preset.vibratoSpeed % 1) * preset.vibratoDepth;
-            double increment = (frequency + vibrato) / sampleRate;
+            double increment = Frequency * 2 * Math.PI / sampleRate;
             for (int i = 0; i < data.Length; i += channels)
             {
                 //generate wave
-                wave = preset.wave.Evaluate((float)phase) * volume;
+                wave = 0;
+                if (preset.wave == Wave.Saw)
+                {
+                    wave = phase / (2.0 * Math.PI);
+                }
+                else if (preset.wave == Wave.Sine)
+                {
+                    wave = Math.Sin(phase);
+                }
+                else if (preset.wave == Wave.Square)
+                {
+                    wave = phase > Math.PI ? 1 : 0;
+                }
+                else if (preset.wave == Wave.Triangle)
+                {
+                    wave = phase;
+                    if (phase > Math.PI)
+                    {
+                        wave = (Math.PI * 2.0) - phase;
+                    }
+                }
+                wave *= volume;
 
                 //assign data
                 data[i] = (float)wave;
-                if (channels == 2)
-                {
-                    data[i + 1] = (float)wave;
-                }
+                if (channels == 2) data[i + 1] = data[i];
 
                 phase += increment;
-                if (phase >= 1f)
+                if (phase > 2.0 * Math.PI)
                 {
-                    phase = 0f;
+                    phase = 0;
                 }
             }
         }

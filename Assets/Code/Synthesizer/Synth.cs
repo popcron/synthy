@@ -5,11 +5,20 @@ using UnityEngine;
 
 namespace Popcron.Synth
 {
+    public enum Wave
+    {
+        Saw,
+        Sine,
+        Square,
+        Triangle
+    }
+
     [RequireComponent(typeof(AudioSource))]
     public class Synth : MonoBehaviour
     {
+        public int noteOffset = 0;
         public byte voices = 16;
-        public float volume = 1f;
+        public double volume = 1.0;
         public GeneratorPreset preset;
 
         private List<KeyCode> keysPressed = new List<KeyCode>();
@@ -96,16 +105,13 @@ namespace Popcron.Synth
 
         private void OnAudioFilterRead(float[] data, int channels)
         {
-            float volume = 1f / generators.Count * this.volume;
+            double volume = 1.0 / generators.Count * this.volume;
             for (int i = 0; i < generators.Count; i++)
             {
+                generators[i].Frequency = keysPressed.Count > i ? Helper.GetFrequencyFromKey(keysPressed[i]) : 0;
+                generators[i].Preset = preset;
+                generators[i].Volume = volume;
                 generators[i].Active = keysPressed.Count > i;
-                if (generators[i].Active)
-                {
-                    generators[i].Preset = preset;
-                    generators[i].Volume = volume;
-                    generators[i].Frequency = Helper.GetFrequencyFromKey(keysPressed[i]);
-                }
             }
         }
     }
