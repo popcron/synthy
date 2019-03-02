@@ -7,6 +7,14 @@ namespace Popcron.Synth
 {
     public class Generator : MonoBehaviour
     {
+        public enum ADSRState
+        {
+            Attacking,
+            Decaying,
+            Sustaining,
+            Releasing
+        }
+
         [SerializeField]
         private GeneratorPreset preset;
 
@@ -19,15 +27,24 @@ namespace Popcron.Synth
         [SerializeField]
         private double volume;
 
+        [SerializeField]
         private double phase;
+
+        private bool stop;
         private double lastPhase;
         private double dspTime;
         private double sampleRate;
         private double wave;
-        private Material lineMaterial;
         private AudioSource audioSource;
+        private Synth synth;
+        private bool queuedForStopping;
+        private double adsrVolume;
 
-        private List<double> history = new List<double>();
+        private double startVolume;
+        private ADSRState state;
+        private float activeTime;
+        private float releasedTime;
+        private double desiredFrequency;
 
         public GeneratorPreset Preset
         {
@@ -45,12 +62,11 @@ namespace Popcron.Synth
         {
             get
             {
-                double vibrato = Math.Sin(dspTime * preset.vibratoSpeed) * preset.vibratoDepth;
-                return frequency + vibrato;
+                return desiredFrequency;
             }
             set
             {
-                frequency = value;
+                desiredFrequency = value;
             }
         }
 
@@ -62,6 +78,20 @@ namespace Popcron.Synth
             }
             set
             {
+                if (!active && value)
+                {
+                    queuedForStopping = false;
+                    if (stop)
+                    {
+                        phase = 0f;
+                        stop = false;
+                        frequency = desiredFrequency;
+                    }
+
+                    state = ADSRState.Attacking;
+                    startVolume = adsrVolume;
+                }
+
                 active = value;
             }
         }
@@ -89,39 +119,18 @@ namespace Popcron.Synth
             audioSource.spatialBlend = 0f;
             audioSource.playOnAwake = false;
             audioSource.Stop();
-            lineMaterial = null;
             active = false;
         }
 
-        private void OnRenderObject()
+        public void Initialize(Synth synth)
         {
-            if (!lineMaterial)
-            {
-                lineMaterial = new Material(Shader.Find("Sprites/Default"));
-            }
+            Reset();
+            this.synth = synth;
+        }
 
-            GL.PushMatrix();
-
-            lineMaterial.SetPass(0);
-            GL.LoadPixelMatrix();
-            GL.Begin(GL.LINES);
-
-            float speed = 2f;
-
-            //draw pitch
-            GL.Color(Color.red);
-            for (int i = 1; i < history.Count - 1; i++)
-            {
-                int index = (history.Count - 1) - i;
-                float x = i * speed;
-                if (x > Screen.width) continue;
-
-                float y = (float)history[index];
-                GL.Vertex3(x, (y * 0.2f) + Screen.height * 0.5f, 0);
-            }
-
-            GL.End();
-            GL.PopMatrix();
+        private double Lerp(double a, double b, double t)
+        {
+            return a * (1.0 - t) + b * t;
         }
 
         private void Update()
@@ -134,44 +143,88 @@ namespace Popcron.Synth
 
             if (Active)
             {
+                frequency = desiredFrequency;
+                releasedTime = 0f;
+                activeTime += Time.deltaTime;
+
+                if (state == ADSRState.Attacking)
+                {
+                    double t = activeTime / preset.adsr.attack.time;
+                    if (t >= 1)
+                    {
+                        adsrVolume = preset.adsr.attack.volume;
+                        state = ADSRState.Decaying;
+                        startVolume = adsrVolume;
+                        return;
+                    }
+
+                    adsrVolume = Lerp(startVolume, preset.adsr.attack.volume, t);
+                }
+                else if (state == ADSRState.Decaying)
+                {
+                    double t = (activeTime - preset.adsr.attack.time) / preset.adsr.decay.time;
+                    if (t >= 1)
+                    {
+                        adsrVolume = preset.adsr.decay.volume;
+                        state = ADSRState.Sustaining;
+                        return;
+                    }
+
+                    adsrVolume = Lerp(startVolume, preset.adsr.decay.volume, t);
+                }
+                else if (state == ADSRState.Sustaining)
+                {
+                    adsrVolume = preset.adsr.decay.volume;
+                }
+
                 if (!audioSource.isPlaying)
                 {
-                    phase = 0f;
                     audioSource.Play();
+                    phase = 0;
                 }
             }
             else
             {
-                //queue for stop, only stop when reached 0 phase
-                if (phase > 0 && lastPhase < phase)
+                if (state != ADSRState.Releasing)
                 {
-                    phase = 0;
-                    audioSource.Stop();
-                    wave = 0;
+                    state = ADSRState.Releasing;
+                    startVolume = adsrVolume;
                 }
-                else if (phase < 0 && lastPhase > phase)
+                if (state == ADSRState.Releasing)
                 {
-                    phase = 0;
+                    double t = releasedTime / preset.adsr.release;
+                    if (t > 1)
+                    {
+                        t = 1;
+                        if (audioSource.isPlaying)
+                        {
+                            queuedForStopping = true;
+                        }
+                    }
+                    adsrVolume = Lerp(startVolume, 0, t);
+                }
+
+                activeTime = 0f;
+                releasedTime += Time.deltaTime;
+
+                if (audioSource.isPlaying && stop)
+                {
                     audioSource.Stop();
-                    wave = 0;
                 }
             }
 
             sampleRate = AudioSettings.outputSampleRate;
             lastPhase = phase;
             dspTime = AudioSettings.dspTime;
-
-            //set history
-            history.Add(Frequency - 400);
-            if (history.Count > 300)
-            {
-                history.RemoveAt(0);
-            }
         }
 
         private void OnAudioFilterRead(float[] data, int channels)
         {
-            double increment = Frequency * 2 * Math.PI / sampleRate;
+            if (stop) return;
+
+            double vibrato = Math.Sin(dspTime * preset.vibratoSpeed) * preset.vibratoDepth;
+            double f = frequency + vibrato;
+            double increment = f * 2.0 * Math.PI / sampleRate;
             for (int i = 0; i < data.Length; i += channels)
             {
                 //generate wave
@@ -196,16 +249,20 @@ namespace Popcron.Synth
                         wave = (Math.PI * 2.0) - phase;
                     }
                 }
-                wave *= volume;
+                wave *= volume * adsrVolume;
 
                 //assign data
                 data[i] = (float)wave;
                 if (channels == 2) data[i + 1] = data[i];
 
                 phase += increment;
-                if (phase > 2.0 * Math.PI)
+                if (phase >= 2.0 * Math.PI)
                 {
                     phase = 0;
+                    if (!active && queuedForStopping)
+                    {
+                        stop = true;
+                    }
                 }
             }
         }

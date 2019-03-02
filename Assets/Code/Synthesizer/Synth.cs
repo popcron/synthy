@@ -99,7 +99,7 @@ namespace Popcron.Synth
         {
             GameObject generatorGameObject = new GameObject("Generator");
             Generator generator = generatorGameObject.AddComponent<Generator>();
-            generator.Reset();
+            generator.Initialize(this);
             return generator;
         }
 
@@ -108,7 +108,10 @@ namespace Popcron.Synth
             double volume = 1.0 / generators.Count * this.volume;
             for (int i = 0; i < generators.Count; i++)
             {
-                generators[i].Frequency = keysPressed.Count > i ? Helper.GetFrequencyFromKey(keysPressed[i]) : 0;
+                if (keysPressed.Count > i)
+                {
+                    generators[i].Frequency = Helper.GetFrequencyFromKey(keysPressed[i]);
+                }
                 generators[i].Preset = preset;
                 generators[i].Volume = volume;
                 generators[i].Active = keysPressed.Count > i;
